@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+
+    </data>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+    <RelativeLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:gravity="center_vertical"
+            style="@style/textview"
+
+            android:id="@+id/tv_title1"
+            android:text="打印点："
+            />
+
+        <ImageView
+            android:id="@+id/iv_printpos"
+            android:layout_margin="10dp"
+            android:layout_alignParentRight="true"
+            android:src="@mipmap/ic_scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <EditText
+            android:layout_centerVertical="true"
+            style="@style/edittext"
+            android:id="@+id/et_printpos"
+            android:layout_toRightOf="@id/tv_title1"
+            android:layout_toLeftOf="@id/iv_printpos"
+            />
+    </RelativeLayout>
+    <LinearLayout
+        android:visibility="gone"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:gravity="center_vertical"
+            style="@style/textview"
+           android:layout_gravity="center_vertical"
+
+            android:text="调整尺寸："
+            />
+
+
+        <EditText
+            android:text="0.5f"
+            android:layout_centerVertical="true"
+            style="@style/edittext"
+            android:id="@+id/et_scale"
+            />
+    </LinearLayout>
+    <LinearLayout
+        android:visibility="gone"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:gravity="center_vertical"
+            style="@style/textview"
+            android:layout_gravity="center_vertical"
+
+            android:text="调整浓度(1-16)："
+            />
+
+
+        <EditText
+            android:text="1"
+            android:layout_centerVertical="true"
+            style="@style/edittext"
+            android:id="@+id/et_Density"
+            />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_cCode"
+        android:gravity="center_vertical"
+        style="@style/textview"
+
+        android:text="派工单号："
+        />
+    <TextView
+        android:id="@+id/tv_mocode"
+        android:gravity="center_vertical"
+        style="@style/textview"
+
+        android:text="生产单号："
+        />
+    <TextView
+        android:id="@+id/tv_invstd"
+        android:gravity="center_vertical"
+        style="@style/textview"
+
+        android:text="零件号："
+        />
+    <TextView
+        android:id="@+id/tv_invname"
+        android:gravity="center_vertical"
+        style="@style/textview"
+
+        android:text="描述："
+        />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/tv_sncount"
+            android:gravity="center_vertical"
+            style="@style/textview"
+
+            android:text="本次分配数量："
+            android:layout_gravity="center_vertical"
+            />
+
+
+    </LinearLayout>
+    <TextView
+        android:textSize="20sp"
+        android:id="@+id/tv_count"
+        android:gravity="center_vertical"
+        style="@style/textview"
+        android:textColor="@color/blue"
+        android:text="打印数量："
+        />
+    <TextView
+        android:textSize="20sp"
+        android:id="@+id/tv_overplus"
+        android:gravity="center_vertical"
+        style="@style/textview"
+        android:textColor="@color/blue"
+        android:text="剩余数量："
+        />
+
+
+
+    <Button
+        android:layout_margin="@dimen/layout_margin"
+        android:textColor="@color/white"
+        android:background="@color/blue"
+        android:textSize="22sp"
+        android:id="@+id/b_print"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="打    印"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:visibility="gone"
+        android:layout_gravity="center_horizontal"
+        android:background="@mipmap/ic_defaultpic"
+        android:id="@+id/iv_code"
+        android:layout_centerInParent="true"
+        android:layout_width="100dp"
+        android:layout_height="100dp" />
+</LinearLayout>
+</layout>
