@@ -18,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -56,37 +57,13 @@ public class MainActivity extends AppCompatActivity {
   //  private  int i=0;
     ActivityMainBinding binding;
     DataBean bean;
+    int j=0;
+    private  boolean isRegister=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding =DataBindingUtil.setContentView(this,R.layout.activity_main);
-        binding.bPrint.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(bean==null){
-                    return;
-                }
 
-                if(printerPort==null) {
-                    initbluetooth();
-                }
-                printeData();
-
-            }
-        });
-        binding.ivPrintpos.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new IntentIntegrator(MainActivity.this)
-                        .setCaptureActivity(ScanActivity.class)
-                        .setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES)// 扫码的类型,可选：一维码，二维码，一/二维码
-                        .setPrompt("请对准二维码")// 设置提示语
-                        .setCameraId(0)// 选择摄像头,可使用前置或者后置
-                        .setBeepEnabled(false)// 是否开启声音,扫完码之后会"哔"的一声
-                        .setBarcodeImageEnabled(true)// 扫完码之后生成二维码的图片
-                        .initiateScan();// 初始化扫码
-            }
-        });
         binding.etPrintpos.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -96,8 +73,58 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+        binding.bContinue.setOnClickListener(onClickListener);
+        binding.bPrint.setOnClickListener(onClickListener);
+        binding.ivPrintpos.setOnClickListener(onClickListener);
+
 
     }
+    View.OnClickListener onClickListener=new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()){
+                case R.id.b_print:
+                    if(bean==null){
+                        return;
+                    }
+                    if(printerPort==null) {
+                        initbluetooth();
+                    }
+                    if(j==bean.getSncount()){
+                        Toast.makeText(MainActivity.this,"打印任务已完成!",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    printeData();
+                    break;
+                case R.id.b_continue:
+                    if(bean==null){
+                        return;
+                    }
+
+                    if(printerPort==null) {
+                        initbluetooth();
+                    }
+                    if(j==bean.getSncount()){
+                        Toast.makeText(MainActivity.this,"打印任务已完成!",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    continueprinteData();
+                    break;
+                case R.id.iv_printpos:
+                    new IntentIntegrator(MainActivity.this)
+                            .setCaptureActivity(ScanActivity.class)
+                            .setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES)// 扫码的类型,可选：一维码，二维码，一/二维码
+                            .setPrompt("请对准二维码")// 设置提示语
+                            .setCameraId(0)// 选择摄像头,可使用前置或者后置
+                            .setBeepEnabled(false)// 是否开启声音,扫完码之后会"哔"的一声
+                            .setBarcodeImageEnabled(true)// 扫完码之后生成二维码的图片
+                            .initiateScan();// 初始化扫码
+                    break;
+            }
+
+
+        }
+    };
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
@@ -143,13 +170,20 @@ public class MainActivity extends AppCompatActivity {
                     if(response.code()==200) {
 
                         JSONArray jsonArray=new JSONArray(response.body().string());
-                        Log.i("json",jsonArray.getJSONObject(0).toString());
+                        Log.i("json",jsonArray.toString());
+                        if(jsonArray.length()==0){
+                            Toast.makeText(MainActivity.this,"打印任务已完成!",Toast.LENGTH_SHORT).show();
+                            return;
+                        }
                        bean=new Gson().fromJson(jsonArray.getJSONObject(0).toString(),DataBean.class);
-                       binding.tvCCode.setText("派工单号："+bean.getCCode());
-                       binding.tvInvname.setText("描述："+bean.getInvname());
-                       binding.tvMocode.setText("生产单号："+bean.getMocode());
-                       binding.tvInvstd.setText("零件号："+bean.getInvstd());
-                       binding.tvSncount.setText("描述："+bean.getSncount()+"");
+
+                           binding.tvCCode.setText("派工单号：" + bean.getCCode());
+                           binding.tvInvname.setText("描述：" + bean.getInvname());
+                           binding.tvMocode.setText("生产单号：" + bean.getMocode());
+                           binding.tvInvstd.setText("零件号：" + bean.getInvstd());
+                           binding.tvSncount.setText("描述：" + bean.getSncount() + "/" + bean.getBeginsn() + "/" + bean.getEndsn());
+                           j = 0;
+
 
 
                     }
@@ -166,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
     private void initbluetooth() {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         this.registerReceiver(mReceiver, filter);
-
+        isRegister=true;
         // Register for broadcasts when discovery has finished
         filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         this.registerReceiver(mReceiver, filter);
@@ -258,20 +292,64 @@ public class MainActivity extends AppCompatActivity {
         if (mBluetoothAdapter!= null) {
             mBluetoothAdapter.cancelDiscovery();
         }
-        printerPort.disconnect();
+        if(printerPort!=null) {
+            printerPort.disconnect();
+        }
         // Unregister broadcast listeners
-        this.unregisterReceiver(mReceiver);
+         if(isRegister) {
+             this.unregisterReceiver(mReceiver);
+         }
     }
     Handler handler=new Handler(){
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            binding.tvCount.setText("打印数量："+msg.what);
-            binding.tvOverplus.setText("剩余数量："+(bean.getSncount()-msg.what));
+            j++;
+            binding.tvCount.setText("打印数量："+j);
+            binding.tvOverplus.setText("剩余数量："+(bean.getSncount()-j));
 
         }
     };
-    int j=0;
+
+
+    public void continueprinteData() {
+
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                printerPort.setDensity(0x02, 10);
+                for (int i = bean.getBeginsn()+j; i < bean.getBeginsn()+bean.getSncount(); i++) {
+
+                    printerPort.printBitmap(createCode(bean.getCCode()+"#"+bean.getInvstd()+"#"+(i)));
+                    printerPort.printerLocation(0x20,0);
+                    handler.sendEmptyMessage(j);
+
+                }
+
+
+                if (printerPort.getSendResult(10000).equals("OK")) {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            Toast.makeText(MainActivity.this, "发送成功", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            Toast.makeText(MainActivity.this, "发送失败", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                }
+            }
+        }).start();
+    }
     public void printeData() {
 
 
@@ -280,13 +358,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 printerPort.setDensity(0x02, 10);
-                for (int i = bean.getBeginsn(); i < bean.getBeginsn()+bean.getSncount(); i++) {
-                    j++;
-                    printerPort.printBitmap(createCode(bean.getCCode()+"#"+bean.getInvstd()+"#"+(bean.getBeginsn()+i)));
-                    printerPort.printerLocation(0x20,0);
-                    handler.sendEmptyMessage(j);
-                }
 
+                printerPort.printBitmap(createCode(bean.getCCode()+"#"+bean.getInvstd()+"#"+(bean.getBeginsn()+j)));
+                printerPort.printerLocation(0x20,0);
+                handler.sendEmptyMessage(j);
 
                 if (printerPort.getSendResult(10000).equals("OK")) {
                     MainActivity.this.runOnUiThread(new Runnable() {
