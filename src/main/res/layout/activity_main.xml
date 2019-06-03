@@ -1,15 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:tools="http://schemas.android.com/tools">
     <data>
 
     </data>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    >
+    <LinearLayout
+        android:background="@color/white"
+        android:id="@+id/l_view"
+        android:layout_gravity="center_horizontal"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textColor="@color/black"
+            android:text=""
+            android:id="@+id/tv_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <ImageView
+            android:layout_gravity="center_horizontal"
+            android:background="@mipmap/ic_defaultpic"
+            android:id="@+id/iv_code"
+            android:layout_centerInParent="true"
+            android:layout_width="70dp"
+            android:layout_height="70dp" />
+    </LinearLayout>
     <RelativeLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -17,7 +38,6 @@
         <TextView
             android:gravity="center_vertical"
             style="@style/textview"
-
             android:id="@+id/tv_title1"
             android:text="打印点："
             />
@@ -27,10 +47,10 @@
             android:layout_margin="10dp"
             android:layout_alignParentRight="true"
             android:src="@mipmap/ic_scan"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="32dp"
+            android:layout_height="32dp" />
         <EditText
-
+            android:text=""
             android:layout_centerVertical="true"
             style="@style/edittext"
             android:id="@+id/et_printpos"
@@ -38,9 +58,28 @@
             android:layout_toLeftOf="@id/iv_printpos"
             />
     </RelativeLayout>
+    <RelativeLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:gravity="center_vertical"
+            style="@style/textview"
+            android:id="@+id/tv_title2"
+            android:text="地址："
+            />
+        <EditText
+
+            android:layout_centerVertical="true"
+            style="@style/edittext"
+            android:id="@+id/et_url"
+            android:layout_toRightOf="@id/tv_title2"
+            />
+    </RelativeLayout>
+
 
     <LinearLayout
-        android:visibility="gone"
+
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -54,7 +93,7 @@
 
 
         <EditText
-            android:text="0.5f"
+
             android:layout_centerVertical="true"
             style="@style/edittext"
             android:id="@+id/et_scale"
@@ -151,10 +190,10 @@
         android:layout_margin="@dimen/layout_margin"
         android:textColor="@color/white"
         android:background="@color/blue"
-        android:textSize="22sp"
+        android:textSize="16sp"
         android:id="@+id/b_print"
         android:layout_width="wrap_content"
-        android:layout_height="60dp"
+        android:layout_height="30dp"
         android:text="打    印"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -165,10 +204,10 @@
         android:layout_margin="@dimen/layout_margin"
         android:textColor="@color/white"
         android:background="@color/blue"
-        android:textSize="22sp"
+        android:textSize="16sp"
         android:id="@+id/b_continue"
         android:layout_width="wrap_content"
-        android:layout_height="60dp"
+        android:layout_height="30dp"
         android:text="连续打印"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -177,13 +216,6 @@
 </LinearLayout>
 
 
-    <ImageView
-        android:visibility="gone"
-        android:layout_gravity="center_horizontal"
-        android:background="@mipmap/ic_defaultpic"
-        android:id="@+id/iv_code"
-        android:layout_centerInParent="true"
-        android:layout_width="100dp"
-        android:layout_height="100dp" />
+
 </LinearLayout>
 </layout>

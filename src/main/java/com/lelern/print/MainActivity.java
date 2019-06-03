@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -23,6 +24,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -35,11 +37,14 @@ import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.lelern.print.databinding.ActivityMainBinding;
 import com.qr285.sdk.OnPrinterListener;
 import com.qr285.sdk.PrinterPort;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -55,14 +60,21 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter mBluetoothAdapter = null;
     private PrinterPort printerPort;
   //  private  int i=0;
-    ActivityMainBinding binding;
     DataBean bean;
     int j=0;
     private  boolean isRegister=false;
+    SharedPreferences sharedPreferences;
+    View viewprint;
+    ActivityMainBinding binding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding =DataBindingUtil.setContentView(this,R.layout.activity_main);
+
+        viewprint=binding.getRoot().findViewById(R.id.l_view);
+        sharedPreferences=getSharedPreferences("sp",0);
+        binding.etScale.setText(sharedPreferences.getString("scale","0.5f"));
+        binding.etUrl.setText(sharedPreferences.getString("url",Request.URL));
 
         binding.etPrintpos.setOnKeyListener(new View.OnKeyListener() {
             @Override
@@ -76,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
         binding.bContinue.setOnClickListener(onClickListener);
         binding.bPrint.setOnClickListener(onClickListener);
         binding.ivPrintpos.setOnClickListener(onClickListener);
-
 
     }
     View.OnClickListener onClickListener=new View.OnClickListener() {
@@ -94,6 +105,11 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this,"打印任务已完成!",Toast.LENGTH_SHORT).show();
                         return;
                     }
+                    sharedPreferences.edit().putString("scale",binding.etScale.getText().toString()).commit();
+                    sharedPreferences.edit().putString("url",binding.etUrl.getText().toString()).commit();
+
+                    createCode(bean.getCCode()+"#"+bean.getInvstd()+"#"+(bean.getBeginsn()+j));
+
                     printeData();
                     break;
                 case R.id.b_continue:
@@ -108,7 +124,15 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this,"打印任务已完成!",Toast.LENGTH_SHORT).show();
                         return;
                     }
+                    sharedPreferences.edit().putString("scale",binding.etScale.getText().toString()).commit();
+                    sharedPreferences.edit().putString("url",binding.etUrl.getText().toString()).commit();
+                    for (int i = bean.getBeginsn()+j; i < bean.getBeginsn()+bean.getSncount(); i++) {
+                        createCode(bean.getCCode()+"#"+bean.getInvstd()+"#"+(i));
+                        bitmapList.add(getBitmap());
+                    }
+
                     continueprinteData();
+
                     break;
                 case R.id.iv_printpos:
                     new IntentIntegrator(MainActivity.this)
@@ -125,6 +149,21 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+    List<Bitmap> bitmapList=new ArrayList<>();
+
+    private Bitmap getBitmap() {
+
+        viewprint.setDrawingCacheEnabled(true);
+        viewprint.buildDrawingCache();
+        Bitmap  bitmap=Bitmap.createBitmap(viewprint.getDrawingCache());
+        viewprint.destroyDrawingCache();
+        Matrix matrix = new Matrix();
+        matrix.postScale(Float.parseFloat(binding.etScale.getText().toString()), Float.parseFloat(binding.etScale.getText().toString()));
+        bitmap=Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),matrix,true);
+
+        return bitmap;
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
@@ -150,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
         try {
 
             jsonObject.put("methodname","getPrintList");
-            jsonObject.put("acccode","036");
+            jsonObject.put("acccode","003");
             jsonObject.put("printpos",binding.etPrintpos.getText().toString());
 
 
@@ -161,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
         String obj=jsonObject.toString();
         Log.i("json object",obj);
 
-        Call<ResponseBody> data =Request.getRequestbody(obj);
+        Call<ResponseBody> data =Request.getRequestbody(obj,binding.etUrl.getText().toString());
         data.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(retrofit2.Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -181,6 +220,7 @@ public class MainActivity extends AppCompatActivity {
                            binding.tvInvname.setText("描述：" + bean.getInvname());
                            binding.tvMocode.setText("生产单号：" + bean.getMocode());
                            binding.tvInvstd.setText("零件号：" + bean.getInvstd());
+                           binding.tvNumber.setText("零件号：" + bean.getInvstd());
                            binding.tvSncount.setText("描述：" + bean.getSncount() + "/" + bean.getBeginsn() + "/" + bean.getEndsn());
                            j = 0;
 
@@ -268,21 +308,22 @@ public class MainActivity extends AppCompatActivity {
             Log.i("device-","no one");
         }
     }
-    Bitmap bitmap;
-    private Bitmap createCode(String content) {
 
+
+    private void createCode(String content) {
+       Bitmap bitmap=null;
         BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
         try {
 
-           bitmap = barcodeEncoder.encodeBitmap(content, BarcodeFormat.QR_CODE, 100, 100);
-          //  binding.ivCode.setImageBitmap(bitmap);
-
+            bitmap = barcodeEncoder.encodeBitmap(content, BarcodeFormat.QR_CODE, 200, 200);
+            binding.ivCode.setImageBitmap(bitmap);
         } catch (WriterException e) {
             e.printStackTrace();
         }
-        return  bitmap;
+
 
     }
+
 
 
 
@@ -304,9 +345,28 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            j++;
-            binding.tvCount.setText("打印数量："+j);
-            binding.tvOverplus.setText("剩余数量："+(bean.getSncount()-j));
+            switch (msg.what){
+                case 0:
+                    Bitmap bitmap=null;
+                    BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
+                    try {
+                        bitmap = barcodeEncoder.encodeBitmap(msg.obj.toString(), BarcodeFormat.QR_CODE, 100, 100);
+                    } catch (WriterException e) {
+                        e.printStackTrace();
+                    }
+                    binding.ivCode.setImageBitmap(bitmap);
+
+                    break;
+                case 1:
+
+                    j++;
+                    Log.i("j-->",j+"");
+                    binding.tvCount.setText("打印数量："+j);
+                    binding.tvOverplus.setText("剩余数量："+(bean.getSncount()-j));
+
+                    break;
+            }
+
 
         }
     };
@@ -320,11 +380,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 printerPort.setDensity(0x02, 10);
-                for (int i = bean.getBeginsn()+j; i < bean.getBeginsn()+bean.getSncount(); i++) {
-
-                    printerPort.printBitmap(createCode(bean.getCCode()+"#"+bean.getInvstd()+"#"+(i)));
+                for (int i = 0; i <bitmapList.size() ; i++) {
+                    printerPort.printBitmap(bitmapList.get(i));
                     printerPort.printerLocation(0x20,0);
-                    handler.sendEmptyMessage(j);
 
                 }
 
@@ -335,6 +393,7 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
 
                             Toast.makeText(MainActivity.this, "发送成功", Toast.LENGTH_SHORT).show();
+                            handler.sendEmptyMessage(1);
                         }
                     });
                 } else {
@@ -353,15 +412,15 @@ public class MainActivity extends AppCompatActivity {
     public void printeData() {
 
 
-
         new Thread(new Runnable() {
             @Override
             public void run() {
-                printerPort.setDensity(0x02, 10);
 
-                printerPort.printBitmap(createCode(bean.getCCode()+"#"+bean.getInvstd()+"#"+(bean.getBeginsn()+j)));
+                printerPort.setDensity(0x02, 10);
+                //  bitmap=getViewBitmap(binding.lView);
+                printerPort.printBitmap( getBitmap());
+                printerPort.setPaperType(0x02,0x20);
                 printerPort.printerLocation(0x20,0);
-                handler.sendEmptyMessage(j);
 
                 if (printerPort.getSendResult(10000).equals("OK")) {
                     MainActivity.this.runOnUiThread(new Runnable() {
@@ -369,6 +428,7 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
 
                             Toast.makeText(MainActivity.this, "发送成功", Toast.LENGTH_SHORT).show();
+                            handler.sendEmptyMessage(1);
                         }
                     });
                 } else {
@@ -383,6 +443,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
+
     }
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
